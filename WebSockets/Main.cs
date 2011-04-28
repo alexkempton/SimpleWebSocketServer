@@ -21,7 +21,7 @@ namespace WebSockets
             {
 				server = new TcpListener(IPAddress.Loopback, 8181);
                 server.Start();
-                char[] bytes = new char[256];
+                byte[] bytes = new byte[500];
                 int numberOfBytesRead = 0;
 
                 while (true)
@@ -30,14 +30,18 @@ namespace WebSockets
                     TcpClient client = server.AcceptTcpClient();
                     Console.WriteLine("Connected!");
                    using(NetworkStream stream = client.GetStream())
-                    using (StreamReader streamReader = new StreamReader(stream, Encoding.Default, true))
                     {
-                        numberOfBytesRead = numberOfBytesRead + streamReader.Read(bytes,0,255);
-                      
-                    }
 					
-					handshake.HandleClientHandshake(bytes, numberOfBytesRead);
-				
+
+						
+                       numberOfBytesRead = numberOfBytesRead + stream.Read(bytes,0,bytes.Length);
+						byte[] handshakeCode = handshake.HandleClientHandshake(bytes, numberOfBytesRead);
+						byte[] handshakeResponse = handshake.GetHandShakeResponse(handshakeCode);
+						stream.Write(handshakeResponse,0,handshakeResponse.Length);
+		              }				
+				bytes = new byte[500];		
+				numberOfBytesRead = 0;
+					
           
                     client.Close();
                 }
